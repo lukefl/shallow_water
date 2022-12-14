@@ -42,15 +42,15 @@ rand('state',0);
 [u1,v1,p1]=set_init(ni,ap,dx,ra,f,3);
 
 % Define initial state vector
-xi=set_state(u1,v1,p1,ni);
+xi=set_state(u1,v1,p1,ni)';
 x=xi;
-xim = xi';
+xim = xi;
 xm = xim;
 M = M_test(ni,dx,dt,au,ap,f);
 %%%%%%%%%%%%%%%% loop in time %%%%%%%%%%%%%
 for k = 1:kend
     disp(k)
-	x = HP_solver(x, ni, dx, au, ap, f, ra, k, dt, nfor);
+	x = (HP_solver(x', ni, dx, au, ap, f, ra, k, dt, nfor))';
 	xm = M*xm;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -65,12 +65,12 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 xa=xm;
 
-echo on
+echo off
 % --- adjoint test, Problem 3a ---
 % for Y = L X the adjoint is X* = L* Y
 % The adjoint test checks that <Y,LX> = <L*Y,X>
 % where lhs = <L*Y,X> and rhs = <Y,LX> 
-lhs = xim'*xm
+lhs = xim'*xa
 rhs = xmf'*xmf
 disp (num2str([lhs rhs],15));
 
