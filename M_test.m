@@ -1,8 +1,8 @@
- function M = M_test(ni,dx,dt,au,ap,f)
+function M = M_test(ni,dx,dt,au,ap,f)
 
-% % numerical and physical parameters
+% numerical and physical parameters
 % nk=30;                 %Number of time steps
-% ni=80;                 %No. of grid points in the zonal direction
+% ni=20;                 %No. of grid points in the zonal direction
 % ra=6.4e6;              %Radius of the Earth in m
 % f=1.0e-4;              %Coriolis parameter in 1/s
 % ap=1.0e5;              %phi_0 scaling factor m^2/s^2
@@ -25,18 +25,7 @@ for i=1:ni
     I2(ni+i, ni+i) = 1;
     I3(2*ni+i, 2*ni+i) = 1;
 end
-% I = I1 + I2 + I3;
-% % diagonal matrices shifted 1 to the right and 1 to the left from identity matrices
-% % diagonal sub-matrices
-% Dp1_1 = circshift(I1,1,2);
-% Dm1_1 = circshift(I1,-1,2);
-% Dp1_2 = circshift(I2,1,2);
-% Dm1_2 = circshift(I2,-1,2);
-% Dp1_3 = circshift(I3,1,2);
-% Dm1_3 = circshift(I3,-1,2);
-% % full diagonal matrices
-% Dp1 = Dp1_1 + Dp1_2 + Dp1_3;
-% Dm1 = Dm1_1 + Dm1_2 + Dm1_3;
+I = I1 + I2 + I3;
 % matrices that transform one variable to another
 v2u = circshift(I1,ni,2);
 u2v = circshift(I1,ni,1);
@@ -77,10 +66,27 @@ du2phi(2*ni+1,3*ni) = 0;
 du2phi(2*ni+1,ni) = -1;
 
 % tangent linear model matrix, finally! x(k+1) = M*x(k)
-M = eye(3*ni) ...
+M0 = eye(3*ni) ...
     + dt*(f*v2u - au*du2u/(2*dx) - dphi2u/(2*dx) ... % dudt
     - f*u2v - au*dv2v/(2*dx) ... % dvdt
     + f*au*v2phi - au*dphi2phi/(2*dx) -ap*du2phi/(2*dx)); % dphidt
+
+% implement RK4 in matrix form note that k1-4 are matrices
+
+k1 = M0-I;
+k2 = (M0-I)*(I+0.5*k1);
+k3 = (M0-I)*(I+0.5*k2);
+k4 = (M0-I)*(I+k3);
+
+M = M0;
+figure(1)
+% imshow(log10(abs(M)), [-5 2])
+% imshow(c,'InitialMagnification','fit')
+% cb = colorbar();
+% ylabel(cb, 'log10(M)')
+% M = I + (1/6)*(k1 + 2*k2 + 2*k3 + k4); % total timestep matrix
+% M = zeros(3*ni,3*ni);
+
 % 
 % % 
 % [u,v,p]=set_init(ni,ap,dx,ra,f,1);
